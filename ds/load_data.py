@@ -37,7 +37,7 @@ def load_raw_data_ptbxl(
         raise ValueError(
             f"Sampling rate must be 100 either 500, not {sampling_rate}!"
         )
-    
+
     df_filename_column = (
         "filename_lr" if sampling_rate == 100
         else "filename_hr"
@@ -106,7 +106,7 @@ def compute_labels(
     # Cache MultiLabelBinarizer
     with open(path.join(out_path, "mlb.pkl"), "wb") as f:
         pickle.dump(mlb, f)
-    
+
     return labels, mlb
 
 
