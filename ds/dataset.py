@@ -7,7 +7,7 @@ from torch.utils.data.dataloader import DataLoader
 from ds.load_data import load_processed_data
 
 
-class PtbXlWrapper():
+class PtbXlWrapper:
     """Store train/test/validation waves and tabulardata """
     def __init__(
             self,
