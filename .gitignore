@@ -143,3 +143,6 @@ data/
 # virtual environment
 .venv/
 venv/
+
+# tensorboard data
+runs/
