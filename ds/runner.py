@@ -79,7 +79,7 @@ class Runner:
         self.accuracy_metric.update(batch_accuracy, batch_size)
 
         self.y_true_batches += [y_np]
-        self.y_pred_batches += [y_prediction_np]
+        self.y_pred_batches += [y_prediction_np_activ]
         return loss, batch_accuracy
 
     def reset(self):
@@ -93,6 +93,7 @@ def run_epoch(
     train_runner: Runner,
     experiment: ExperimentTracker,
     epoch_id: int,
+    classes: tuple[str]
 ):
     # Training Loop
     experiment.set_stage(Stage.TRAIN)
@@ -111,3 +112,9 @@ def run_epoch(
 
     # Log Validation Epoch Metrics
     experiment.add_epoch_metric("Accuracy", test_runner.avg_accuracy, epoch_id)
+    experiment.add_epoch_confusion_matrix(
+        test_runner.y_true_batches,
+        test_runner.y_pred_batches,
+        epoch_id,
+        classes
+    )

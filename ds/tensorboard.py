@@ -2,6 +2,8 @@ from pathlib import Path
 
 import numpy as np
 from matplotlib import pyplot as plt
+from sklearn.metrics import multilabel_confusion_matrix
+from sklearn.metrics import ConfusionMatrixDisplay
 from torch.utils.tensorboard import SummaryWriter
 
 from ds.tracking import Stage
@@ -41,9 +43,38 @@ class TensorboardExperiment:
         tag = f"{self.stage.name}/epoch/{name}"
         self._writer.add_scalar(tag, value, step)
 
+    def add_epoch_confusion_matrix(
+            self,
+            y_true: list[np.array],
+            y_pred: list[np.array],
+            step: int,
+            classes: tuple[str]) -> None:
+        y_true, y_pred = self.collapse_batches(y_true, y_pred)
+        fig = self.create_confusion_matrix(y_true, y_pred, step, classes)
+        tag = f"{self.stage.name}/epoch/confusion_matrix"
+        self._writer.add_figure(tag, fig, step)
+
     @staticmethod
     def collapse_batches(
             y_true: list[np.array],
             y_pred: list[np.array]
         ) -> tuple[np.ndarray, np.ndarray]:
         return np.concatenate(y_true), np.concatenate(y_pred)
+
+    def create_confusion_matrix(
+            self,
+            y_true: list[np.array],
+            y_pred: list[np.array],
+            step: int,
+            classes: tuple[str]) -> plt.Figure:
+        cfs = multilabel_confusion_matrix(y_true, y_pred)
+        fig, axes = plt.subplots(1, len(cfs), figsize=(20, 7), dpi=87)
+        axes = axes.ravel()
+
+        for axe, cf, title in zip(axes, cfs, classes):
+            disp = ConfusionMatrixDisplay(cf)
+            disp.plot(ax=axe)
+            disp.im_.colorbar.remove()
+            disp.ax_.set_title(title)
+
+        return fig
