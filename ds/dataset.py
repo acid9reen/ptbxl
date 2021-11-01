@@ -1,5 +1,7 @@
 from os import path
 
+import numpy as np
+from sklearn.preprocessing import StandardScaler
 import torch
 from torch.utils.data import Dataset
 from torch.utils.data.dataloader import DataLoader
@@ -32,17 +34,24 @@ class PtbXlWrapper:
         self.tabular = tabular
         self.classes = classes
 
+        # Standardize our features
+        X_waves_train, X_waves_test, X_waves_val = standardize_xs(
+            waves[tabular.strat_fold < 9],
+            waves[tabular.strat_fold == 9],
+            waves[tabular.strat_fold == 10]
+        )
+
         # 1-8 for training
-        self.X_waves_train = waves[tabular.strat_fold < 9]
+        self.X_waves_train = X_waves_train
         self.y_train = labels[tabular.strat_fold < 9]
 
         # 9 for test
-        self.X_waves_test = waves[tabular.strat_fold == 9]
+        self.X_waves_test = X_waves_test
         self.y_test = labels[tabular.strat_fold == 9]
 
         # 10 for validation
         self.X_waves_val = torch.tensor(
-            waves[tabular.strat_fold == 10],
+            X_waves_val,
             dtype=torch.float32
         )
         self.y_val = torch.tensor(
@@ -96,3 +105,33 @@ class PtbXl(Dataset):
             torch.tensor(features, dtype=torch.float32),
             torch.tensor(label, dtype=torch.float32)
         )
+
+
+def standardize_xs(
+        x_train: np.ndarray,
+        x_test: np.ndarray,
+        x_val: np.ndarray,
+        ) -> tuple[np.ndarray]:
+    """
+    Apply standart scalar
+    Fit it to train data and transfrom all dataset
+    """
+    ss = StandardScaler()
+    ss.fit(np.vstack(x_train).flatten()[:, np.newaxis].astype(float))
+
+    return (
+        apply_standardizer(x_train, ss),
+        apply_standardizer(x_test, ss),
+        apply_standardizer(x_train, ss)
+    )
+
+def apply_standardizer(features: np.ndarray, ss: StandardScaler) -> np.ndarray:
+    features_tmp = []
+    for x in features:
+        x_shape = x.shape
+        features_tmp.append(
+            ss.transform(x.flatten()[:, np.newaxis])
+            .reshape(x_shape)
+        )
+
+    return np.array(features_tmp)
