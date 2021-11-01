@@ -73,7 +73,7 @@ class Runner:
         y_prediction_np_activ = np.zeros(y_prediction_np.shape)
 
         for ind, arr in enumerate(y_prediction_np, 0):
-            y_prediction_np_activ[ind] = v_activate(arr)
+            y_prediction_np_activ[ind] = v_activate(arr, 0.35)
 
         batch_accuracy: float = accuracy_score(y_np, y_prediction_np_activ)
         self.accuracy_metric.update(batch_accuracy, batch_size)
@@ -107,10 +107,10 @@ def run_epoch(
     )
 
     # Testing Loop
-    experiment.set_stage(Stage.VAL)
+    experiment.set_stage(Stage.TEST)
     test_runner.run("Test Batches", experiment)
 
-    # Log Validation Epoch Metrics
+    # Log Test Epoch Metrics
     experiment.add_epoch_metric("Accuracy", test_runner.avg_accuracy, epoch_id)
     precision, recall, f1_score, __ = precision_recall_fscore_support(
         np.concatenate(test_runner.y_true_batches),
@@ -124,6 +124,34 @@ def run_epoch(
     experiment.add_epoch_confusion_matrix(
         test_runner.y_true_batches,
         test_runner.y_pred_batches,
+        epoch_id,
+        classes
+    )
+
+
+def run_validation(
+    val_runner: Runner,
+    experiment: ExperimentTracker,
+    classes: tuple[str]
+):
+    epoch_id = 0
+
+    experiment.set_stage(Stage.VAL)
+    val_runner.run("Val Batches", experiment)
+
+    experiment.add_epoch_metric("Accuracy", val_runner.avg_accuracy, epoch_id)
+    precision, recall, f1_score, __ = precision_recall_fscore_support(
+        np.concatenate(val_runner.y_true_batches),
+        np.concatenate(val_runner.y_pred_batches),
+        average="samples",
+        zero_division=0
+    )
+    experiment.add_epoch_metric("Precision", precision, epoch_id)
+    experiment.add_epoch_metric("Recall", recall, epoch_id)
+    experiment.add_epoch_metric("f1_score", f1_score, epoch_id)
+    experiment.add_epoch_confusion_matrix(
+        val_runner.y_true_batches,
+        val_runner.y_pred_batches,
         epoch_id,
         classes
     )
