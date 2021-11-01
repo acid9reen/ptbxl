@@ -2,7 +2,7 @@ from typing import Any, Optional
 
 import numpy as np
 import torch
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 from torch.utils.data.dataloader import DataLoader
 from tqdm import tqdm
 
@@ -112,6 +112,15 @@ def run_epoch(
 
     # Log Validation Epoch Metrics
     experiment.add_epoch_metric("Accuracy", test_runner.avg_accuracy, epoch_id)
+    precision, recall, f1_score, __ = precision_recall_fscore_support(
+        np.concatenate(test_runner.y_true_batches),
+        np.concatenate(test_runner.y_pred_batches),
+        average="samples",
+        zero_division=0
+    )
+    experiment.add_epoch_metric("Precision", precision, epoch_id)
+    experiment.add_epoch_metric("Recall", recall, epoch_id)
+    experiment.add_epoch_metric("f1_score", f1_score, epoch_id)
     experiment.add_epoch_confusion_matrix(
         test_runner.y_true_batches,
         test_runner.y_pred_batches,
