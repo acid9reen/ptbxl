@@ -50,14 +50,8 @@ class PtbXlWrapper:
         self.y_test = labels[tabular.strat_fold == 9]
 
         # 10 for validation
-        self.X_waves_val = torch.tensor(
-            X_waves_val,
-            dtype=torch.float32
-        )
-        self.y_val = torch.tensor(
-            labels[tabular.strat_fold == 10],
-            dtype=torch.float32
-        )
+        self.X_waves_val = X_waves_val
+        self.y_val = labels[tabular.strat_fold == 10]
 
     def make_train_dataloader(self) -> DataLoader:
         return DataLoader(
@@ -68,6 +62,12 @@ class PtbXlWrapper:
     def make_test_dataloader(self) -> DataLoader:
         return DataLoader(
             PtbXl(self.X_waves_test, self.y_test),
+            batch_size=self.batch_size
+        )
+
+    def make_val_dataloader(self) -> DataLoader:
+        return DataLoader(
+            PtbXl(self.X_waves_val, self.y_val),
             batch_size=self.batch_size
         )
 
@@ -122,7 +122,7 @@ def standardize_xs(
     return (
         apply_standardizer(x_train, ss),
         apply_standardizer(x_test, ss),
-        apply_standardizer(x_train, ss)
+        apply_standardizer(x_val, ss)
     )
 
 def apply_standardizer(features: np.ndarray, ss: StandardScaler) -> np.ndarray:
