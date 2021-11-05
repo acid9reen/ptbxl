@@ -17,7 +17,7 @@ def conv_block(
         ),
         nn.BatchNorm1d(output_size),
         nn.ReLU(),
-        nn.Dropout(dropout_p),
+        #nn.Dropout(dropout_p),
         nn.MaxPool1d(2),
     )
 
@@ -38,15 +38,15 @@ def lin_block(
 class ConvLinearBasicModel(nn.Module):
     def __init__(self) -> None:
         super().__init__()
-        self.conv_1 = conv_block(12, 16, 5)
-        self.conv_2 = conv_block(16, 32, 5)
-        self.conv_3 = conv_block(32, 64, 3, 0.2)
-        self.conv_4 = conv_block(64, 256, 3, 0.2)
+        self.conv_1 = conv_block(12, 16, 5, 0.5)
+        self.conv_2 = conv_block(16, 32, 3, 0.5)
+        self.conv_3 = conv_block(32, 64, 3, 0.5)
+        self.conv_4 = conv_block(64, 256, 3, 0.5)
 
-        self.ln_1 = lin_block(125*64, 64)
+        self.ln_1 = lin_block(62*256, 128)
         self.ln_2 = lin_block(64, 64)
         self.ln_3 = lin_block(64, 5)
-        self.ln_4 = lin_block(200, 100)
+        self.ln_4 = lin_block(128, 64)
         self.ln_5 = lin_block(100, 50)
         self.ln_6 = lin_block(50, 10)
         self.ln_7 = lin_block(10, 5)
@@ -57,10 +57,12 @@ class ConvLinearBasicModel(nn.Module):
         wave = self.conv_1(wave)
         wave = self.conv_2(wave)
         wave = self.conv_3(wave)
+        wave = self.conv_4(wave)
 
         wave = torch.flatten(wave, 1)
 
         wave = F.relu(self.ln_1(wave))
+        wave = F.relu(self.ln_4(wave))
         wave = F.relu(self.ln_2(wave))
         wave = self.ln_3(wave)
 
