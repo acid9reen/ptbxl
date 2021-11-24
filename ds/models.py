@@ -157,8 +157,8 @@ class ResNetEncoder(nn.Module):
     def __init__(
         self,
         in_channels: int = 12,
-        blocks_sizes: tuple[int] = (64, 256, 512),
-        depths: tuple[int] = (1, 1, 1),
+        blocks_sizes: tuple[int] = (64, 128, 256, 512),
+        depths: tuple[int] = (1, 1, 1, 1),
         activation: str = "relu",
         block=ResNetBasicBlock,
         *args,
@@ -254,7 +254,7 @@ def basic_res_net(
 ) -> ResNet:
 
     return ResNet(
-        in_channels, n_classes, block=block, depths=(1, 1, 1), *args, **kwargs
+        in_channels, n_classes, block=block, depths=(2, 2, 2, 2), *args, **kwargs
     )
 
 
