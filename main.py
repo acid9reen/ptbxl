@@ -2,13 +2,13 @@ import torch
 
 from ds.dataset import PtbXlWrapper
 from ds.tensorboard import TensorboardExperiment
-from ds.runner import Runner, run_epoch
+from ds.runner import Runner, run_epoch, run_validation
 from ds.models import ConvLinearBasicModel
 
 
 # Hyperparameters
-EPOCH_COUNT = 60
-LR = 6e-4
+EPOCH_COUNT = 20
+LR = 8e-4
 BATCH_SIZE = 128
 LOG_PATH = "./runs"
 
@@ -28,6 +28,7 @@ def main():
     # Create the data loaders
     train_dl = dataset.make_train_dataloader()
     test_dl = dataset.make_test_dataloader()
+    val_dl = dataset.make_val_dataloader()
 
     # Model and optimizer
     model = ConvLinearBasicModel().to(DEVICE)
@@ -36,13 +37,20 @@ def main():
     # Create the runners
     test_runner = Runner(test_dl, model, device=DEVICE)
     train_runner = Runner(train_dl, model, optimizer, device=DEVICE)
+    val_runner = Runner(val_dl, model, device=DEVICE)
 
     # Setup the experiment tracker
     tracker = TensorboardExperiment(LOG_PATH)
 
     # Run the epochs
     for epoch_id in range(EPOCH_COUNT):
-        run_epoch(test_runner, train_runner, tracker, epoch_id)
+        run_epoch(
+            test_runner,
+            train_runner,
+            tracker,
+            epoch_id,
+            dataset.classes
+        )
 
         # Compute Average Epoch Metrics
         summary = ", ".join(
@@ -60,6 +68,9 @@ def main():
 
         # Flush the tracker after every epoch for live updates
         tracker.flush()
+
+    run_validation(val_runner, tracker, dataset.classes)
+
 
 
 if __name__ == "__main__":
