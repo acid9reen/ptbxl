@@ -32,7 +32,7 @@ class Runner:
         self.optimizer = optimizer
         self.device = device
         # Objective (loss) function
-        self.compute_loss = torch.nn.BCELoss()
+        self.compute_loss = torch.nn.BCELoss(reduction="sum")
         self.y_true_batches: list[list[Any]] = []
         self.y_pred_batches: list[list[Any]] = []
         # Assume Stage based on presence of optimizer
@@ -73,7 +73,7 @@ class Runner:
         y_prediction_np_activ = np.zeros(y_prediction_np.shape)
 
         for ind, arr in enumerate(y_prediction_np, 0):
-            y_prediction_np_activ[ind] = v_activate(arr, 0.35)
+            y_prediction_np_activ[ind] = v_activate(arr, 0.5)
 
         batch_accuracy: float = accuracy_score(y_np, y_prediction_np_activ)
         self.accuracy_metric.update(batch_accuracy, batch_size)
