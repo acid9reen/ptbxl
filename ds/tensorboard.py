@@ -44,11 +44,12 @@ class TensorboardExperiment:
         self._writer.add_scalar(tag, value, step)
 
     def add_epoch_confusion_matrix(
-            self,
-            y_true: list[np.array],
-            y_pred: list[np.array],
-            step: int,
-            classes: tuple[str]) -> None:
+        self,
+        y_true: list[np.array],
+        y_pred: list[np.array],
+        step: int,
+        classes: tuple[str],
+    ) -> None:
         y_true, y_pred = self.collapse_batches(y_true, y_pred)
         fig = self.create_confusion_matrix(y_true, y_pred, step, classes)
         tag = f"{self.stage.name}/epoch/confusion_matrix"
@@ -56,17 +57,17 @@ class TensorboardExperiment:
 
     @staticmethod
     def collapse_batches(
-            y_true: list[np.array],
-            y_pred: list[np.array]
-        ) -> tuple[np.ndarray, np.ndarray]:
+        y_true: list[np.array], y_pred: list[np.array]
+    ) -> tuple[np.ndarray, np.ndarray]:
         return np.concatenate(y_true), np.concatenate(y_pred)
 
     def create_confusion_matrix(
-            self,
-            y_true: list[np.array],
-            y_pred: list[np.array],
-            step: int,
-            classes: tuple[str]) -> plt.Figure:
+        self,
+        y_true: list[np.array],
+        y_pred: list[np.array],
+        step: int,
+        classes: tuple[str],
+    ) -> plt.Figure:
         cfs = multilabel_confusion_matrix(y_true, y_pred)
         fig, axes = plt.subplots(1, len(cfs), figsize=(20, 7), dpi=87)
         axes = axes.ravel()

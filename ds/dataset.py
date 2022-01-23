@@ -10,12 +10,11 @@ from ds.load_data import load_processed_data
 
 
 class PtbXlWrapper:
-    """Store train/test/validation waves and tabulardata """
+    """Store train/test/validation waves and tabulardata"""
+
     def __init__(
-            self,
-            data_dir: str,
-            sampling_rate: int=100,
-            batch_size: int = 64) -> None:
+        self, data_dir: str, sampling_rate: int = 100, batch_size: int = 64
+    ) -> None:
         """Separate data into train/test/val datasets"""
         raw_data_path = path.join(data_dir, "raw")
         interim_data_path = path.join(data_dir, "interim")
@@ -25,10 +24,7 @@ class PtbXlWrapper:
         self.batch_size = batch_size
 
         waves, tabular, labels, classes = load_processed_data(
-            sampling_rate,
-            raw_data_path,
-            interim_data_path,
-            proc_data_path
+            sampling_rate, raw_data_path, interim_data_path, proc_data_path
         )
 
         self.tabular = tabular
@@ -38,7 +34,7 @@ class PtbXlWrapper:
         X_waves_train, X_waves_test, X_waves_val = standardize_xs(
             waves[tabular.strat_fold < 9],
             waves[tabular.strat_fold == 9],
-            waves[tabular.strat_fold == 10]
+            waves[tabular.strat_fold == 10],
         )
 
         # 1-8 for training
@@ -55,34 +51,29 @@ class PtbXlWrapper:
 
     def make_train_dataloader(self) -> DataLoader:
         return DataLoader(
-            PtbXl(self.X_waves_train, self.y_train),
-            batch_size=self.batch_size
+            PtbXl(self.X_waves_train, self.y_train), batch_size=self.batch_size
         )
 
     def make_test_dataloader(self) -> DataLoader:
         return DataLoader(
-            PtbXl(self.X_waves_test, self.y_test),
-            batch_size=self.batch_size
+            PtbXl(self.X_waves_test, self.y_test), batch_size=self.batch_size
         )
 
     def make_val_dataloader(self) -> DataLoader:
         return DataLoader(
-            PtbXl(self.X_waves_val, self.y_val),
-            batch_size=self.batch_size
+            PtbXl(self.X_waves_val, self.y_val), batch_size=self.batch_size
         )
 
 
 class PtbXl(Dataset):
     """Implement ptbxl dataset"""
+
     features: torch.Tensor
     labels: torch.Tensor
     index: int
     length: int
 
-    def __init__(
-            self,
-            features: torch.Tensor,
-            labels: torch.Tensor) -> None:
+    def __init__(self, features: torch.Tensor, labels: torch.Tensor) -> None:
         """Create dataset from user features and labels"""
         feat_len, labels_len = len(features), len(labels)
         if feat_len != labels_len:
@@ -103,15 +94,15 @@ class PtbXl(Dataset):
 
         return (
             torch.tensor(features, dtype=torch.float32),
-            torch.tensor(label, dtype=torch.float32)
+            torch.tensor(label, dtype=torch.float32),
         )
 
 
 def standardize_xs(
-        x_train: np.ndarray,
-        x_test: np.ndarray,
-        x_val: np.ndarray,
-        ) -> tuple[np.ndarray]:
+    x_train: np.ndarray,
+    x_test: np.ndarray,
+    x_val: np.ndarray,
+) -> tuple[np.ndarray]:
     """
     Apply standart scalar
     Fit it to train data and transfrom all dataset
@@ -122,16 +113,14 @@ def standardize_xs(
     return (
         apply_standardizer(x_train, ss),
         apply_standardizer(x_test, ss),
-        apply_standardizer(x_val, ss)
+        apply_standardizer(x_val, ss),
     )
+
 
 def apply_standardizer(features: np.ndarray, ss: StandardScaler) -> np.ndarray:
     features_tmp = []
     for x in features:
         x_shape = x.shape
-        features_tmp.append(
-            ss.transform(x.flatten()[:, np.newaxis])
-            .reshape(x_shape)
-        )
+        features_tmp.append(ss.transform(x.flatten()[:, np.newaxis]).reshape(x_shape))
 
     return np.array(features_tmp)

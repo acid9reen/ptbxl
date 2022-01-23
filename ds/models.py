@@ -259,29 +259,22 @@ def basic_res_net(
 
 
 def conv_block(
-        input_size: int,
-        output_size: int,
-        kernel_size: int,
-        dropout_p: float=0.5) -> nn.Sequential:
+    input_size: int, output_size: int, kernel_size: int, dropout_p: float = 0.5
+) -> nn.Sequential:
     block = nn.Sequential(
         nn.Conv1d(
-            input_size,
-            output_size,
-            kernel_size=kernel_size,
-            padding=kernel_size // 2
+            input_size, output_size, kernel_size=kernel_size, padding=kernel_size // 2
         ),
         nn.BatchNorm1d(output_size),
         nn.ReLU(),
-        #nn.Dropout(dropout_p),
+        # nn.Dropout(dropout_p),
         nn.MaxPool1d(2),
     )
 
     return block
 
 
-def lin_block(
-        input_size: int,
-        output_size: int) -> nn.Sequential:
+def lin_block(input_size: int, output_size: int) -> nn.Sequential:
     block = nn.Sequential(
         nn.Linear(input_size, output_size),
         nn.BatchNorm1d(output_size),
@@ -298,7 +291,7 @@ class ConvLinearBasicModel(nn.Module):
         self.conv_3 = conv_block(32, 64, 3, 0.5)
         self.conv_4 = conv_block(64, 256, 3, 0.5)
 
-        self.ln_1 = lin_block(62*256, 128)
+        self.ln_1 = lin_block(62 * 256, 128)
         self.ln_2 = lin_block(64, 64)
         self.ln_3 = lin_block(64, 5)
         self.ln_4 = lin_block(128, 64)

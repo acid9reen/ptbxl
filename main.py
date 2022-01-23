@@ -44,13 +44,7 @@ def main():
 
     # Run the epochs
     for epoch_id in range(EPOCH_COUNT):
-        run_epoch(
-            test_runner,
-            train_runner,
-            tracker,
-            epoch_id,
-            dataset.classes
-        )
+        run_epoch(test_runner, train_runner, tracker, epoch_id, dataset.classes)
 
         # Compute Average Epoch Metrics
         summary = ", ".join(
@@ -70,7 +64,6 @@ def main():
         tracker.flush()
 
     run_validation(val_runner, tracker, dataset.classes)
-
 
 
 if __name__ == "__main__":

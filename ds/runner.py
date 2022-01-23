@@ -10,7 +10,7 @@ from ds.metrics import Accuracy
 from ds.tracking import ExperimentTracker, Stage
 
 
-def activate(x: float, threshold: float=0.5) -> float:
+def activate(x: float, threshold: float = 0.5) -> float:
     return 1 if x > threshold else 0
 
 
@@ -22,8 +22,8 @@ class Runner:
         self,
         loader: DataLoader,
         model: torch.nn.Module,
-        optimizer: Optional[torch.optim.Optimizer]=None,
-        device: str="cpu",
+        optimizer: Optional[torch.optim.Optimizer] = None,
+        device: str = "cpu",
     ) -> None:
         self.run_count = 0
         self.loader = loader
@@ -49,11 +49,7 @@ class Runner:
             x, y = x.to(self.device), y.to(self.device)
             loss, batch_accuracy = self._run_single(x, y)
 
-            experiment.add_batch_metric(
-                "Accuracy",
-                batch_accuracy,
-                self.run_count
-            )
+            experiment.add_batch_metric("Accuracy", batch_accuracy, self.run_count)
 
             if self.optimizer:
                 # Backpropagation
@@ -93,18 +89,14 @@ def run_epoch(
     train_runner: Runner,
     experiment: ExperimentTracker,
     epoch_id: int,
-    classes: tuple[str]
+    classes: tuple[str],
 ):
     # Training Loop
     experiment.set_stage(Stage.TRAIN)
     train_runner.run("Train Batches", experiment)
 
     # Log Training Epoch Metrics
-    experiment.add_epoch_metric(
-        "Accuracy",
-        train_runner.avg_accuracy,
-        epoch_id
-    )
+    experiment.add_epoch_metric("Accuracy", train_runner.avg_accuracy, epoch_id)
 
     # Testing Loop
     experiment.set_stage(Stage.TEST)
@@ -116,23 +108,18 @@ def run_epoch(
         np.concatenate(test_runner.y_true_batches),
         np.concatenate(test_runner.y_pred_batches),
         average="samples",
-        zero_division=0
+        zero_division=0,
     )
     experiment.add_epoch_metric("Precision", precision, epoch_id)
     experiment.add_epoch_metric("Recall", recall, epoch_id)
     experiment.add_epoch_metric("f1_score", f1_score, epoch_id)
     experiment.add_epoch_confusion_matrix(
-        test_runner.y_true_batches,
-        test_runner.y_pred_batches,
-        epoch_id,
-        classes
+        test_runner.y_true_batches, test_runner.y_pred_batches, epoch_id, classes
     )
 
 
 def run_validation(
-    val_runner: Runner,
-    experiment: ExperimentTracker,
-    classes: tuple[str]
+    val_runner: Runner, experiment: ExperimentTracker, classes: tuple[str]
 ):
     epoch_id = 0
 
@@ -144,14 +131,11 @@ def run_validation(
         np.concatenate(val_runner.y_true_batches),
         np.concatenate(val_runner.y_pred_batches),
         average="samples",
-        zero_division=0
+        zero_division=0,
     )
     experiment.add_epoch_metric("Precision", precision, epoch_id)
     experiment.add_epoch_metric("Recall", recall, epoch_id)
     experiment.add_epoch_metric("f1_score", f1_score, epoch_id)
     experiment.add_epoch_confusion_matrix(
-        val_runner.y_true_batches,
-        val_runner.y_pred_batches,
-        epoch_id,
-        classes
+        val_runner.y_true_batches, val_runner.y_pred_batches, epoch_id, classes
     )
